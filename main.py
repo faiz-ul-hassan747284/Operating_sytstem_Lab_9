@@ -1,5 +1,6 @@
 from anytree import Node, RenderTree, NodeMixin
 from math import floor
+import json
 import os
 
 
@@ -151,6 +152,7 @@ class FileObj():
 
 # Main required Functions
 def open_file(fname,output_file, mode="r+w"):
+
     """ Modes: r = read, w = write, r+w = read and write (append) """
     files[fname] = FileObj(fname, mode,output_file)
     output_file.write("File has been opened!")
@@ -184,8 +186,9 @@ def makeDir(fname, output_file):
     output_file.write("Directory has been created!")
 
 
-def file_system(thread_id, decision, file_name='', input_text=''):
+def file_system(thread_id, decision, file_name='', input_text='',username=''):
     output_file = open('thread_output_no'+str(thread_id)+'.txt','w')
+    # input_file = open('input_thread_no_'+str(thread_id),'r')
     if decision == 1:
         create(fname=file_name, output_file=output_file)
         output_file.write("File created!")
@@ -197,6 +200,28 @@ def file_system(thread_id, decision, file_name='', input_text=''):
             output_file.write("File does not exist")
     elif decision == 3:
         if file_name in files.keys():
+            user_based = open('user_based.json', 'r')
+            overall = open('overall.json', 'r')
+            user_based_record = json.load(user_based)
+            overall_record = json.load(overall)
+            if username  in user_based_record.keys and user_based_record[username]==5:
+                output_file.write('No more files for particular user')
+            else:
+                if file_name in overall_record.keys and overall_record[file_name]==3:
+                    output_file.write('no more users can open this file')
+                else:
+                    overall.close()
+                    user_based.close()
+                    user_based = open('user_based.json', 'w')
+                    overall = open('overall.json', 'w')
+                    if username not in user_based_record.keys:
+                        user_based_record[username]=0
+                    if file_name not in overall_record.keys:
+                        overall_record[file_name]=0
+                    overall_record[file_name]= overall_record[file_name]+1
+                    user_based_record[username] = user_based_record[username]+1
+                    json.dump(overall, overall_record)
+                    json.dump(user_based, user_based_record)
             f = open_file(file_name, output_file)
             output_file.write("File opened")
         else:
